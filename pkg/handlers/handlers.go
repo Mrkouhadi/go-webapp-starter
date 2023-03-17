@@ -3,48 +3,44 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/mrkouhadi/go-simplewebapp/pkg/config"
-	"github.com/mrkouhadi/go-simplewebapp/pkg/models"
-	"github.com/mrkouhadi/go-simplewebapp/pkg/render"
+	"github.com/mrkouhadi/go-backend-practice/pkg/config"
+	"github.com/mrkouhadi/go-backend-practice/pkg/models"
+	"github.com/mrkouhadi/go-backend-practice/pkg/render"
 )
 
-// the repository used by the handlers
-var Repo *Repository
-
-// repository type
+// Repository is the type of repository
 type Repository struct {
 	App *config.AppConfig
 }
 
-// NewRepo creates the new repository
-func NewRepo(a *config.AppConfig) *Repository {
+// Repo is the repository that is USED by the handlers
+var Repo *Repository
+
+// NewRepository  creates a new repository
+func NewRepository(AC *config.AppConfig) *Repository {
 	return &Repository{
-		App: a,
+		App: AC,
 	}
 }
 
-// NewHandlers sets the repository for the handlers
-func NewHandlers(r *Repository) {
-	Repo = r
+// NewHandlers set the repository for the handlers
+func NewHandlers(R *Repository) {
+	Repo = R
 }
 
-// Home is the Home page handler
-func (m *Repository) Home(w http.ResponseWriter, req *http.Request) {
-	// get IP address of the visitor
-	remoteIP := req.RemoteAddr
-	m.App.Session.Put(req.Context(), "remote_ip", remoteIP)
-	render.RenderTemplate(w, "home.page.tmpl", &models.TemplateData{})
+// handlers home and about
+// home
+func (R *Repository) Home(w http.ResponseWriter, r *http.Request) {
+	greet := r.RemoteAddr
+	R.App.Session.Put(r.Context(), "greet", greet)
+	render.RenderTemplate(w, "home.page.html", &models.TemplateData{})
 }
 
-// About is the About page handler
-func (m *Repository) About(w http.ResponseWriter, req *http.Request) {
+// about
+func (R *Repository) About(w http.ResponseWriter, r *http.Request) {
+	// create a map
 	strMap := make(map[string]string)
-	strMap["test"] = "I am a piece of Data passed to the about page from about handler."
-	remoteIp := m.App.Session.GetString(req.Context(), "remote_ip")
-	strMap["remote_ip"] = remoteIp
-	render.RenderTemplate(w, "about.page.tmpl", &models.TemplateData{StringMap: strMap})
-}
-
-func (m *Repository) Features(w http.ResponseWriter, req *http.Request) {
-	render.RenderTemplate(w, "features.page.tmpl", &models.TemplateData{})
+	remoteip := R.App.Session.GetString(r.Context(), "greet")
+	strMap["greet"] = remoteip
+	render.RenderTemplate(w, "about.page.html", &models.TemplateData{StringMap: strMap})
 }

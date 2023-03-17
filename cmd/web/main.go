@@ -1,52 +1,52 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/mrkouhadi/go-simplewebapp/pkg/config"
-	"github.com/mrkouhadi/go-simplewebapp/pkg/handlers"
-	"github.com/mrkouhadi/go-simplewebapp/pkg/render"
+	"github.com/mrkouhadi/go-backend-practice/pkg/config"
+	"github.com/mrkouhadi/go-backend-practice/pkg/handlers"
+	"github.com/mrkouhadi/go-backend-practice/pkg/render"
 )
 
 const portNumber = ":8080"
 
-var app config.AppConfig
+var AppConfiguration config.AppConfig
 var session *scs.SessionManager
 
 func main() {
-	// this should be changed to true when in production
-	app.InProduction = false
-
+	// set production mode to false
+	AppConfiguration.InProduction = false
+	// set up session
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
 	session.Cookie.Persist = true // stays there even the session is closed
 	session.Cookie.SameSite = http.SameSiteLaxMode
-	session.Cookie.Secure = app.InProduction //which is false, i should get changed during production though
-
-	app.Session = session
-
-	tc, err := render.CreateTemplateCache()
+	session.Cookie.Secure = AppConfiguration.InProduction // should get changed during production (https vs http)
+	AppConfiguration.Session = session
+	// creating templates cache
+	tmplCache, err := render.CreateTemplateCache()
 	if err != nil {
-		log.Fatal(" Cannot Create Template Cache ")
+		log.Fatal("could not create templates cache !")
 	}
-	app.TemplateCache = tc
-
-	app.UseCache = false
-
-	repo := handlers.NewRepo(&app)
+	// assign new cache
+	AppConfiguration.TemplateCache = tmplCache
+	// set it to not reading from cache (cuz we're still in development mode)
+	AppConfiguration.UseCache = false // if it's false, changes in templates will be shown without stopping the server and run it again; which means it's not reading from the cache(development mode)
+	// initializing a new repository
+	repo := handlers.NewRepository(&AppConfiguration)
 	handlers.NewHandlers(repo)
-	render.NewTemplates(&app)
 
-	srv := &http.Server{
+	// let's give render pkg an access to our appConfiguration for rendering new templates
+	render.NewTemplates(&AppConfiguration)
+
+	// create a server and run it
+	ourServer := &http.Server{
 		Addr:    portNumber,
-		Handler: Routes(&app),
+		Handler: routes(&AppConfiguration),
 	}
-	fmt.Println("Listening to Port:8080")
-	err = srv.ListenAndServe()
-
+	err = ourServer.ListenAndServe()
 	log.Fatal(err)
 }

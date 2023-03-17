@@ -7,20 +7,19 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/mrkouhadi/go-simplewebapp/pkg/config"
-	"github.com/mrkouhadi/go-simplewebapp/pkg/models"
+	"github.com/mrkouhadi/go-backend-practice/pkg/config"
+	"github.com/mrkouhadi/go-backend-practice/pkg/models"
 )
 
-func AddDefaultData(tmplData *models.TemplateData) *models.TemplateData {
-	return tmplData
+func AddDefaultData(templateData *models.TemplateData) *models.TemplateData {
+	return templateData
 }
 
-// render tamplates
 var app *config.AppConfig
 
-// newTemplates sets the config for thetemplate package
-func NewTemplates(a *config.AppConfig) {
-	app = a
+// NewTemplates sets the configfor the template package
+func NewTemplates(appConfig *config.AppConfig) {
+	app = appConfig
 }
 
 // RenderTemplate renders the requested template
@@ -52,13 +51,11 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, tmplData *models.Templat
 // CreateTemplateCache create cache for templates
 func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
-
 	// get all files named *.page.tmpl from ./templates
-	pages, err := filepath.Glob("./templates/*.page.tmpl")
+	pages, err := filepath.Glob("./templates/*.page.html")
 	if err != nil {
 		return myCache, err
 	}
-
 	// range through all files ending with *.page.tmpl
 	for _, page := range pages {
 		fileName := filepath.Base(page) // filepath.Base returns the last element of the path
@@ -67,17 +64,16 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 			return myCache, err
 		}
 		// look for any layout that exist in that directory
-		matches, err := filepath.Glob("./templates/*.layout.tmpl")
+		matches, err := filepath.Glob("./templates/*.layout.html")
 		if err != nil {
 			return myCache, err
 		}
 		if len(matches) > 0 {
-			templSet, err = templSet.ParseGlob("./templates/*.layout.tmpl")
+			templSet, err = templSet.ParseGlob("./templates/*.layout.html")
 			if err != nil {
 				return myCache, err
 			}
 		}
-
 		myCache[fileName] = templSet
 	}
 	return myCache, nil

@@ -1,6 +1,6 @@
 package models
 
-// TempleData holds data to be sent from handlers to templates
+// TemplateData holds data sent from handlers to templates (html)
 type TemplateData struct {
 	StringMap map[string]string
 	IntMap    map[string]int
